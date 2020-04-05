@@ -694,8 +694,13 @@ static void chk_report_conn_err(struct check *check, int errno_bck, int expired)
 		 * might be due to a server IP change.
 		 * Let's trigger a DNS resolution if none are currently running.
 		 */
-		if (check->server)
+		if (check->server) {
+			if (check->server->dns_requester && check->server->dns_requester->resolution) {
+				/* force DNS resolution on connection errors */
+				check->server->dns_requester->resolution->last_resolution = 0;
+			}
 			dns_trigger_resolution(check->server->dns_requester);
+		}
 
 	}
 	else if (conn->flags & CO_FL_WAIT_L6_CONN) {
